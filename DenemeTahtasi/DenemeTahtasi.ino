@@ -1,3 +1,6 @@
+#include <Servo.h>
+Servo servoSol, servoSag;
+
 int trigArka1 = 41;
 int echoArka1 = 40;
 int trigArka2 = 43;
@@ -54,48 +57,33 @@ void setup() {
   pinMode(solSen, INPUT);
   pinMode(sagSen, INPUT);
 
+  servoSol.attach(31);
+  servoSag.attach(30);
+
   analogWrite(sagEn, genelHiz);
   analogWrite(solEn, genelHiz);
 
 }
 
 void loop() {
-  zaman = millis();
-  if (mesafeO("On: ", echoOn2, trigOn2) < 20 || mesafeO("OnSag: ", echoOn3, trigOn3) < 7 || mesafeO("OnSol: ", echoOn1, trigOn1) < 7) {
-    if (mesafeO("SolOn: ", echoOn1, trigOn1) > 28 && sollamaDurum) {
-      Serial.println("+++Sollama Basi+++  ");
 
-      solKontrolTur(LOW, HIGH, 5);
-      sagKontrolTur(HIGH, LOW, 3);
-      CiftTekerTur(HIGH, LOW, HIGH, LOW, 10);
-      solKontrolTur(HIGH, LOW, 2);
-      sagKontrolTur(LOW, HIGH, 2);
-      Serial.println("SSSTOPPP");
-      digitalWrite(motorSol1, LOW);
-      digitalWrite(motorSol2, LOW);
-      digitalWrite(motorSag1, LOW);
-      digitalWrite(motorSag2, LOW);
-      while (1);
+  servoSol.write(70);
+  servoSag.write(15);
+  delay(1000);
+  if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+    servoSag.write(50);
+    delay(1000);
+    if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+      Serial.println("CISIM YOK");
     }
-    else {
-      Serial.println("Etraf DOLU -STOP-");
-      digitalWrite(motorSol1, LOW);
-      digitalWrite(motorSol2, LOW);
-      digitalWrite(motorSag1, LOW);
-      digitalWrite(motorSag2, LOW);
+    else{
+      Serial.println("CISIM GORULDU");
     }
   }
-  else {
-    sollamaDurum = true;
-    solTekerSayac = 0;
-    sagTekerSayac = 0;
-    Serial.println("++Ileri++");
-    digitalWrite(motorSol1, HIGH);
-    digitalWrite(motorSol2, LOW);
-    digitalWrite(motorSag1, HIGH);
-    digitalWrite(motorSag2, LOW);
-
-  }
+  else{
+      Serial.println("CISIM GORULDU");
+    }
+  
 }
 
 void sagKontrolTur(bool sag1, bool sag2, int tur) {
@@ -168,7 +156,6 @@ void StopMillis(int durdur) {
     }
   }
 }
-
 
 int mesafeO(String msg, int echo, int trig) {
   digitalWrite(trig, HIGH);

@@ -1,3 +1,6 @@
+#include <Servo.h>
+Servo servoSol, servoSag;
+
 int trigArka1 = 41;
 int echoArka1 = 40;
 int trigArka2 = 43;
@@ -30,7 +33,8 @@ int sagSen = 51;
 int sagTekerSayac;
 bool sagBirKere;
 
-int genelHiz = 120;
+int genelHiz = 85;
+
 void setup() {
   Serial.begin(9600);
   pinMode(trigArka1, OUTPUT);
@@ -54,52 +58,79 @@ void setup() {
   pinMode(solSen, INPUT);
   pinMode(sagSen, INPUT);
 
+  servoSol.attach(31);
+  servoSag.attach(30);
+
   analogWrite(sagEn, genelHiz);
   analogWrite(solEn, genelHiz);
 
 }
 
 void loop() {
-  zaman = millis();
-  if (mesafeO("On: ", echoOn2, trigOn2) < 20 || mesafeO("OnSag: ", echoOn3, trigOn3) < 7 || mesafeO("OnSol: ", echoOn1, trigOn1) < 7) {
-    if (mesafeO("SolOn: ", echoOn1, trigOn1) > 28 && sollamaDurum) {
-      Serial.println("+++Sollama Basi+++  ");
+  servoSol.write(70);
+  servoSag.write(15);
 
-      solKontrolTur(LOW, HIGH, 5);
-      sagKontrolTur(HIGH, LOW, 3);
-      CiftTekerTur(HIGH, LOW, HIGH, LOW, 10);
-      solKontrolTur(HIGH, LOW, 2);
-      sagKontrolTur(LOW, HIGH, 2);
-      Serial.println("SSSTOPPP");
-      digitalWrite(motorSol1, LOW);
-      digitalWrite(motorSol2, LOW);
-      digitalWrite(motorSag1, LOW);
-      digitalWrite(motorSag2, LOW);
-      while (1);
-    }
-    else {
-      Serial.println("Etraf DOLU -STOP-");
-      digitalWrite(motorSol1, LOW);
-      digitalWrite(motorSol2, LOW);
-      digitalWrite(motorSag1, LOW);
-      digitalWrite(motorSag2, LOW);
+  if (mesafeO("Sag Arka: ", echoArka2, trigArka2) <= 25) {
+
+    GeriKontrol();
+    digitalWrite(motorSol1, LOW);
+    digitalWrite(motorSol2, HIGH);
+    digitalWrite(motorSag1, LOW);
+    digitalWrite(motorSag2, HIGH);
+
+    if (mesafeO("Sag Arka: ", echoArka2, trigArka2) < 3) {
+      Serial.println("3 alti");
+      sagKontrolTur(LOW, HIGH, 3);
+      GeriKontrol();
+      CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
+      GeriKontrol();
+      solKontrolTur(LOW, HIGH, 3);
+      GeriKontrol();
     }
   }
-  else {
-    sollamaDurum = true;
-    solTekerSayac = 0;
-    sagTekerSayac = 0;
-    Serial.println("++Ileri++");
-    digitalWrite(motorSol1, HIGH);
-    digitalWrite(motorSol2, LOW);
-    digitalWrite(motorSag1, HIGH);
-    digitalWrite(motorSag2, LOW);
+  else if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+    CiftTekerTur(LOW, HIGH, LOW, HIGH, 2);
+    GeriKontrol();
+    Serial.println("1.KONTROL");
+    if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+      CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
+      GeriKontrol();
+      Serial.println("2.KONTROL");
+      if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+        CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
+        GeriKontrol();
+        Serial.println("3.KONTROL");
+        if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
+          GeriKontrol();
+          CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
+          GeriKontrol();
+          sagKontrolTur(HIGH, LOW, 5);
+          GeriKontrol();
+          solKontrolTur(LOW, HIGH, 6);
+          GeriKontrol();
+          CiftTekerTur(LOW, HIGH, LOW, HIGH, 5);
+          GeriKontrol();
+          Serial.println("PARK TAMAM .D");
+          StopMillis(1);
+          while (1);
+        }
+      }
+    }
+
 
   }
 }
 
+void GeriKontrol() {
+  if (mesafeO("Arka Sol: ", echoArka1, trigArka1) < 10) {
+    StopMillis(1);
+    Serial.println("ARKADA CISIM ALGILANDI !!!");
+    while (1);
+  }
+}
+
 void sagKontrolTur(bool sag1, bool sag2, int tur) {
-  StopMillis(500);
+  StopMillis(100);
   sagTekerSayac = 0;
   while (1) {
     if (digitalRead(sagSen) && sagBirKere) sagTekerSayac++; sagBirKere = false;
@@ -118,7 +149,7 @@ void sagKontrolTur(bool sag1, bool sag2, int tur) {
 }
 
 void solKontrolTur(bool sol1, bool sol2, int tur) {
-  StopMillis(500);
+  StopMillis(100);
   solTekerSayac = 0;
   while (1) {
     if (digitalRead(solSen) && solBirKere) solTekerSayac++; solBirKere = false;
@@ -137,7 +168,7 @@ void solKontrolTur(bool sol1, bool sol2, int tur) {
 }
 
 void CiftTekerTur(bool sol1, bool sol2, bool sag1, bool sag2, int tur) {
-  StopMillis(500);
+  StopMillis(300);
   solTekerSayac = 0;
   while (1) {
     if (digitalRead(solSen) && solBirKere) solTekerSayac++; solBirKere = false;
@@ -168,7 +199,6 @@ void StopMillis(int durdur) {
     }
   }
 }
-
 
 int mesafeO(String msg, int echo, int trig) {
   digitalWrite(trig, HIGH);
