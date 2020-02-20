@@ -33,7 +33,7 @@ int sagSen = 51;
 int sagTekerSayac;
 bool sagBirKere;
 
-int genelHiz = 85;
+int genelHiz = 100;
 
 void setup() {
   Serial.begin(9600);
@@ -67,57 +67,39 @@ void setup() {
 }
 
 void loop() {
-  servoSol.write(70);
+  servoSol.write(20);
   servoSag.write(15);
 
   if (mesafeO("Sag Arka: ", echoArka2, trigArka2) <= 25) {
-
-    GeriKontrol();
-    digitalWrite(motorSol1, LOW);
-    digitalWrite(motorSol2, HIGH);
-    digitalWrite(motorSag1, LOW);
-    digitalWrite(motorSag2, HIGH);
+    CiftTekerTur(LOW, HIGH, LOW, HIGH, 1);
 
     if (mesafeO("Sag Arka: ", echoArka2, trigArka2) < 3) {
       Serial.println("3 alti");
       sagKontrolTur(LOW, HIGH, 3);
-      GeriKontrol();
       CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
-      GeriKontrol();
       solKontrolTur(LOW, HIGH, 3);
-      GeriKontrol();
     }
   }
   else if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
     CiftTekerTur(LOW, HIGH, LOW, HIGH, 2);
-    GeriKontrol();
     Serial.println("1.KONTROL");
     if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
       CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
-      GeriKontrol();
       Serial.println("2.KONTROL");
       if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
-        CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
-        GeriKontrol();
+        CiftTekerTur(LOW, HIGH, LOW, HIGH, 2);
         Serial.println("3.KONTROL");
         if (mesafeO("Sag Arka: ", echoArka2, trigArka2) > 25) {
-          GeriKontrol();
-          CiftTekerTur(LOW, HIGH, LOW, HIGH, 3);
-          GeriKontrol();
-          sagKontrolTur(HIGH, LOW, 5);
-          GeriKontrol();
-          solKontrolTur(LOW, HIGH, 6);
-          GeriKontrol();
+          CiftTekerTur(LOW, HIGH, LOW, HIGH, 6);
+          sagKontrolTur(HIGH, LOW, 8);
+          solKontrolTur(LOW, HIGH, 8);
           CiftTekerTur(LOW, HIGH, LOW, HIGH, 5);
-          GeriKontrol();
           Serial.println("PARK TAMAM .D");
           StopMillis(1);
           while (1);
         }
       }
     }
-
-
   }
 }
 
@@ -130,6 +112,8 @@ void GeriKontrol() {
 }
 
 void sagKontrolTur(bool sag1, bool sag2, int tur) {
+  analogWrite(sagEn, genelHiz);
+  analogWrite(solEn, genelHiz);
   StopMillis(100);
   sagTekerSayac = 0;
   while (1) {
@@ -149,6 +133,8 @@ void sagKontrolTur(bool sag1, bool sag2, int tur) {
 }
 
 void solKontrolTur(bool sol1, bool sol2, int tur) {
+  analogWrite(sagEn, genelHiz);
+  analogWrite(solEn, genelHiz);
   StopMillis(100);
   solTekerSayac = 0;
   while (1) {
@@ -168,7 +154,9 @@ void solKontrolTur(bool sol1, bool sol2, int tur) {
 }
 
 void CiftTekerTur(bool sol1, bool sol2, bool sag1, bool sag2, int tur) {
-  StopMillis(300);
+  analogWrite(sagEn, genelHiz);
+  analogWrite(solEn, genelHiz - 25);
+  StopMillis(100);
   solTekerSayac = 0;
   while (1) {
     if (digitalRead(solSen) && solBirKere) solTekerSayac++; solBirKere = false;
